@@ -2,33 +2,11 @@
 
 (in-package #:bpirate-cl)
 
-(defparameter +BP-OSC-FREQ+ 32000000)
-(defparameter +BP-PRESCALER-VALUES+ '(1 0 8 1 64 2 256 3)) ;; Plist
-
 (defparameter +BB-TRY+ 20)
 
-(defparameter +BB-MODE-SIG+         "BBIO1")
-(defparameter +BB-SPI-MODE-SIG+     "SPI1")
-(defparameter +BB-I2C-MODE-SIG+     "I2C1")
-(defparameter +BB-UART-MODE-SIG+    "ART1")
-(defparameter +BB-1WIRE-MODE-SIG+   "1W01")
-(defparameter +BB-RAWWIRE-MODE-SIG+ "RAW1")
-
-(defparameter +BB-RESET-CMD+           #b0)
-(defparameter +BB-SPI-CMD+             #b1)
-(defparameter +BB-I2C-CMD+             #b10)
-(defparameter +BB-UART-CMD+            #b11)
-(defparameter +BB-1WIRE-CMD+           #b100)
-(defparameter +BB-RAWWIRE-CMD+         #b101)
-(defparameter +BB-JTAG-CMD+            #b110)
-(defparameter +BB-BP-RESET-CMD+        #b1111)
-(defparameter +BB-SELFTEST-SHORT-CMD+  #b10000)
-(defparameter +BB-SELFTEST-LONG-CMD+   #b10001)
-(defparameter +BB-PWM-CMD+             #b10010)
-(defparameter +BB-PWM-CLR-CMD+         #b10011)
-(defparameter +BB-VP-MEASURE-CMD+      #b10100)
-(defparameter +BB-VP-MEASURE-FLOW-CMD+ #b10101)
-(defparameter +BB-FREQ-MEASURE-CMD+    #b10110)
+(defparameter +BB-BP-RESET-CMD+       #b1111)
+(defparameter +BB-SELFTEST-SHORT-CMD+ #b10000)
+(defparameter +BB-SELFTEST-LONG-CMD+  #b10001)
 
 (defparameter +BB-PINOUT-MASK+ #b01000000)
 (defparameter +BB-ONOFF-MASK+  #b10000000)
@@ -115,37 +93,23 @@
     (when result
       (aref result 0))))
 
-(defmethod pwm-on ((obj bpirate) prescaler period cycle)
-  (let* ((Tcy (/ 2.0 +BP-OSC-FREQ+))
-	 (PRy (floor (1- (/ period (* Tcy prescaler)))))
-	 (OCR (floor (* PRy cycle)))
-	 (cmd (make-array 6
-		:element-type '(unsigned-byte 8)
-		:initial-contents
-		(list +BB-PWM-CMD+ (getf +BP-PRESCALER-VALUES+ prescaler)
-		      (logand (ash OCR -8) #xFF) (logand OCR #xFF)
-		      (logand (ash PRy -8) #xFF) (logand PRy #xFF)))))
-    (format t "Setup. Period: ~a, Tcy: ~a, Prescaler: ~a, PRy: ~a, OCR: ~a.~%"
-	    period Tcy prescaler PRy OCR)
-    (with-bp-cmd (out (slot-value obj 'stream) cmd)
-      out)))
-
-(defmethod pwm-off ((obj bpirate))
-    (with-bp-cmd (out (slot-value obj 'stream)
-		      (make-array 1 :element-type '(unsigned-byte 8)
-				  :initial-element +BB-PWM-CLR-CMD+))
-      out))
-
 (defgeneric bpirate-init-mode (obj mode))
 
 (defmethod bpirate-init-mode ((obj bpirate) bpmode)
   (with-slots (mode) obj
     (setf mode
-       (cond ((eq bpmode :uart)
-	      (make-instance 'bpirate-uart-mode))
-	     ((eq bpmode :spi)
-	      (make-instance 'bpirate-spi-mode))
-	     (t nil)))))
+	  (cond ((eq bpmode :pwm)
+		 (make-instance 'bpirate-pwm-mode))
+		((eq bpmode :uart)
+		 (make-instance 'bpirate-uart-mode))
+		((eq bpmode :spi)
+		 (make-instance 'bpirate-spi-mode))
+		(t nil)))))
+
+(defgeneric bpirate-deinit-mode (obj))
+
+(defmethod bpirate-deinit-mode ((obj bpirate))
+  (setf (slot-value obj 'mode) nil))
 
 ;;(bpirate-init-mode *test* :uart)
 
@@ -157,8 +121,6 @@
 ;;(serial-write (slot-value test 'stream) (make-sequence 'vector +BB-TRY+))
 ;;(serial-read (slot-value test 'stream))
 ;;(serial-recv-len (slot-value test 'stream))
-
-(defparameter *test* nil)
 
 ;;(setq test nil)
 ;;(setq *test* (make-instance 'bpirate :path "/dev/bp4"))
