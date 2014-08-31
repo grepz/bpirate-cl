@@ -26,6 +26,20 @@
 (defparameter +BB-PWM-CMD+     #b10010)
 (defparameter +BB-PWM-CLR-CMD+ #b10011)
 
+;; UART
+(defparameter +BP-UART-PARITY-8/N+ 0)
+(defparameter +BP-UART-PARITY-8/E+ 1)
+(defparameter +BP-UART-PARITY-8/O+ 2)
+(defparameter +BP-UART-PARITY-9/N+ 3)
+
+(defparameter +BP-UART-STOPBIT/1+ 0)
+(defparameter +BP-UART-STOPBIT/2+ 1)
+
+(defparameter +BP-UART-PINOUT/HiZ  0)
+(defparameter +BP-UART-PINOUT/3.3V 1)
+
+(defparameter +BP-UART-POLARITY/1+ 0)
+(defparameter +BP-UART-POLARITY/0+ 1)
 
 (defclass bpirate-mode ()
   ((signature :initarg :signature)))
@@ -37,15 +51,26 @@
 (defgeneric bpirate-mode-reset (obj s &key &allow-other-keys))
 
 (defclass bpirate-uart-mode (bpirate-mode)
-  ())
+  ((bridge :accessor uart-bridge
+	   :initform nil)
+   (baud :accessor uart-baud
+	 :initform sb-posix:B115200)
+   (stopbit :accessor uart-stopbit
+	    :initform +BP-UART-STOPBIT/1+)
+   (polarity :accessor uart-polarity
+	     :initform +BP-UART-POLARITY/1+)
+   (parity :accessor uart-parity
+	   :initform +BP-UART-PARITY-8/N+)
+   (pinout :accessor uart-pinout
+	   :initform +BP-UART-PINOUT/HiZ)))
 
 (defclass bpirate-spi-mode (bpirate-mode)
   ())
 
 (defclass bpirate-pwm-mode (bpirate-mode)
-  ((ocr :reader pwm-ocr)
-   (pry :reader pwm-pry)
-   (tcy :reader pwm-tcy)))
+  ((ocr :accessor pwm-ocr)
+   (pry :accessor pwm-pry)
+   (tcy :accessor pwm-tcy)))
 
 (defmethod bpirate-mode-start ((obj bpirate-pwm-mode) s
 			       &key prescaler period cycle &allow-other-keys)

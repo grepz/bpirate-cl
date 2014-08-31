@@ -7,7 +7,7 @@
 (defun serial-open (path baud)
   (let* ((dev (sb-posix:open
 	       path (logior sb-posix:O-NOCTTY sb-posix:O-NDELAY
-			    sb-posix:O-RDWR ;;sb-posix:O-NONBLOCK
+			    sb-posix:O-RDWR sb-posix:O-NONBLOCK
 			    )))
 	 (tcattr (sb-posix:tcgetattr dev)))
     (setf (sb-posix:termios-cflag tcattr)
