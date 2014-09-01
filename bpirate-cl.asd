@@ -12,8 +12,8 @@
   :components ((:module "src"
 			:serial t
 			:components ((:file "package")
-				     (:file "utils")
 				     (:file "serial")
+				     (:file "utils")
 				     (:file "bpirate-mode")
 				     (:file "bpirate"))))
   ;; :long-description ""

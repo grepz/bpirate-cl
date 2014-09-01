@@ -2,6 +2,13 @@
 
 (in-package #:bpirate-cl)
 
+(defmacro with-bp-cmd ((var s cmd &key (timeout 0.1)) &body body)
+  `(let (,var (gensym))
+     (serial-write ,s ,cmd)
+     (sleep ,timeout)
+     (setf ,var (serial-read ,s))
+     ,@body))
+
 (defun oct-to-string (oct)
   (let* ((len (length oct))
 	(str (make-string len)))

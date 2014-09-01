@@ -4,22 +4,12 @@
 
 (defparameter +BB-TRY+ 20)
 
-(defparameter +BB-BP-RESET-CMD+       #b1111)
-(defparameter +BB-SELFTEST-SHORT-CMD+ #b10000)
-(defparameter +BB-SELFTEST-LONG-CMD+  #b10001)
+(defparameter +BB-BP-RESET-CMD+ #b1111)
 
 (defparameter +BB-PINOUT-MASK+ #b01000000)
 (defparameter +BB-ONOFF-MASK+  #b10000000)
 
 (defparameter +BB-MODE-EXIT+ #xFF)
-
-(defmacro with-bp-cmd ((out s cmd &key (timeout 0.1)) &body body)
-  `(let ((,out (gensym "CMD-OUT")))
-     (progn
-       (serial-write ,s ,cmd)
-       (sleep ,timeout)
-       (setf ,out (serial-read ,s))
-       ,@body)))
 
 (defclass bpirate ()
   ((stream :reader bpirate-stream)
@@ -32,7 +22,7 @@
 (defmethod initialize-instance :after ((obj bpirate)
 				  &key path (baud-key sb-posix:B115200) bbmode)
   (with-slots (stream status baud device) obj
-    (setf baud   baud-key
+    (setf baud baud-key
 	  device path)
     (bpirate-start obj)
     (when bbmode
@@ -76,23 +66,6 @@
 	      (format t "~a" (flexi-streams:octets-to-string out))
 	      (setf (getf status :bbmode) nil)))))))
 
-(defmethod self-test ((obj bpirate) &key long-test)
-  (let ((cmd (if long-test
-		 +BB-SELFTEST-LONG-CMD+
-		 +BB-SELFTEST-SHORT-CMD+))
-	result)
-    (with-slots (stream status) obj
-      (when (and (getf status :stream) (getf status :bbmode))
-	(with-bp-cmd (out stream (make-array 1 :initial-element cmd
-					     :element-type '(unsigned-byte 8))
-			  :timeout 3)
-	  (setf result out))
-	(with-bp-cmd (out stream (make-array
-				  1 :initial-element +BB-MODE-EXIT+
-				  :element-type '(unsigned-byte 8))))))
-    (when result
-      (aref result 0))))
-
 (defgeneric bpirate-init-mode (obj mode))
 
 (defmethod bpirate-init-mode ((obj bpirate) bpmode)
@@ -104,29 +77,11 @@
 		 (make-instance 'bpirate-uart-mode))
 		((eq bpmode :spi)
 		 (make-instance 'bpirate-spi-mode))
+		((eq bpmode :test)
+		 (make-instance 'bpirate-test-mode))
 		(t nil)))))
 
 (defgeneric bpirate-deinit-mode (obj))
 
 (defmethod bpirate-deinit-mode ((obj bpirate))
   (setf (slot-value obj 'mode) nil))
-
-;;(bpirate-init-mode *test* :uart)
-
-;;(pwm-on *test* 1 0.001 0.5)
-;;(pwm-off *test*)
-
-;;(self-test *test*)
-
-;;(serial-write (slot-value test 'stream) (make-sequence 'vector +BB-TRY+))
-;;(serial-read (slot-value test 'stream))
-;;(serial-recv-len (slot-value test 'stream))
-
-;;(setq test nil)
-;;(setq *test* (make-instance 'bpirate :path "/dev/bp4"))
-;;(bpirate-bbmode *test*)
-;;(bpirate-bbmode *test* :mode-on nil)
-;;(bpirate-status *test*)
-;;(bpirate-stop *test*)
-;;(bpirate-start *test*)
-;;(close (bpirate-stream *test*))
