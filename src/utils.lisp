@@ -16,7 +16,7 @@
 	 (setf (char str x) (code-char (aref oct x)))
 	 finally (return str))))
 
-(defun process-data-chunk (data chunk fn)
+(defun process-data-chunk (stream data chunk fn)
   (loop
      with data-len = (length data)
      with ret      = 0
@@ -24,9 +24,8 @@
      for diff-len  = (- data-len cpos)
      for chunk-len = (if (>= diff-len chunk) chunk diff-len) do
        (setf ret
-	     (apply fn (list (subseq data cpos (+ cpos chunk-len))
+	     (apply fn (list stream (subseq data cpos (+ cpos chunk-len))
 			     chunk-len)))
-;;       (format t "=> ~a:~a:~a~%" ret chunk (subseq data cpos (+ cpos chunk-len)))
        (setf cpos (+ cpos chunk-len))
      summing ret into total
      while

@@ -27,10 +27,19 @@
 (bpirate-deinit-mode *test*)
 
 #+nil(bpirate-uart-write (bpirate-mode *test*) (bpirate-stream *test*)
-		    (make-array 110 :element-type '(unsigned-byte 8)
- 				:initial-element 64))
+			 (make-array 5
+			     :element-type '(unsigned-byte 8)
+			     :initial-contents
+			     (mapcar 'char-int '(#\t #\e #\s #\t #\linefeed))))
 
 ;;(serial-read (bpirate-stream *test*))
+;;(bpirate-uart-echo (bpirate-mode *test*) (bpirate-stream *test*) 1)
+
+#+nil(loop for x from 0 to 1000
+	for data = (serial-read (bpirate-stream *test*)) do
+	  (sleep 0.1)
+	  (when (/= (length data) 0)
+	    (print data)))
 
 ;; XXX: Stop
 (bpirate-bbmode *test* :mode-on nil)
