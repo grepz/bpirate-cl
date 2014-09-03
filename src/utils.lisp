@@ -19,10 +19,22 @@
 (defun process-data-chunk (data chunk fn)
   (loop
      with data-len = (length data)
+     with ret      = 0
      with cpos     = 0
      for diff-len  = (- data-len cpos)
      for chunk-len = (if (>= diff-len chunk) chunk diff-len) do
-       (apply fn (list (subseq data cpos (+ cpos chunk-len)) chunk-len))
+       (setf ret
+	     (apply fn (list (subseq data cpos (+ cpos chunk-len))
+			     chunk-len)))
+;;       (format t "=> ~a:~a:~a~%" ret chunk (subseq data cpos (+ cpos chunk-len)))
        (setf cpos (+ cpos chunk-len))
+     summing ret into total
      while
-       (< cpos data-len)))
+       (and (< cpos data-len) (= ret chunk-len))
+     finally
+       (return total)))
+
+(defmacro test-list (lst f)
+  (declare (symbol f)
+	   (list lst))
+  `(loop for l in ,lst always `(,@(funcall ,f l))))

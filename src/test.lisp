@@ -26,6 +26,12 @@
 (bpirate-mode-stop (bpirate-mode *test*) (bpirate-stream *test*))
 (bpirate-deinit-mode *test*)
 
+#+nil(bpirate-uart-write (bpirate-mode *test*) (bpirate-stream *test*)
+		    (make-array 110 :element-type '(unsigned-byte 8)
+ 				:initial-element 64))
+
+;;(serial-read (bpirate-stream *test*))
+
 ;; XXX: Stop
 (bpirate-bbmode *test* :mode-on nil)
 (bpirate-stop *test*)
