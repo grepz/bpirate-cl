@@ -121,11 +121,28 @@ configuration command code.")
     (with-bp-cmd (out stream (make-array 1 :initial-element +BB-UART-CMD+
 				    :element-type '(unsigned-byte 8))
 		      :timeout 1)
-      out)))
+      (flexi-streams:octets-to-string out))))
 
 (defmethod bpirate-mode-stop ((obj bpirate-uart-mode) stream
 			      &key &allow-other-keys)
   (with-bp-cmd (out stream (make-array 1 :initial-element +BB-RESET-CMD+
 				       :element-type '(unsigned-byte 8))
 		    :timeout 1)
-    out))
+    (flexi-streams:octets-to-string out)))
+
+
+(defmethod bpirate-uart-write ((obj bpirate-uart-mode) stream data)
+  )
+
+
+;; (defun test (chunk sz)
+;;   (let ((cmd (logior +BP-UART-WRITE-CMD-MASK+ sz)))
+;;     (with-bp-cmd (out (bpirate-stream *test*)
+;; 		      (make-array 1 :element-type '(unsigned-byte 8)
+;; 				  :initial-element cmd))
+;;       (print out))
+;;     (with-bp-cmd (out (bpirate-stream *test*) chunk)
+;;       (print out))))
+;; (process-data-chunk (make-array 255 :element-type '(unsigned-byte 8)
+;;  				:initial-element 116)
+;; 		    15 #'test)

@@ -55,7 +55,8 @@
       (if mode-on
 	  ;; Turn ON
 	  (unless (getf status :bbmode)
-	    (with-bp-cmd (out stream (make-sequence 'vector +BB-TRY+))
+	    (with-bp-cmd (out stream (make-sequence 'vector +BB-TRY+)
+			      :timeout 1)
 	      (when (string= +BB-MODE-SIG+ (flexi-streams:octets-to-string out))
 		(setf (getf status :bbmode) t))))
 	  ;; Turn OFF

@@ -20,7 +20,11 @@
 (bpirate-mode-start (bpirate-mode *test*) (bpirate-stream *test*))
 (bpirate-mode-stop (bpirate-mode *test*) (bpirate-stream *test*))
 (bpirate-deinit-mode *test*)
-
+;; XXX: UART
+(bpirate-init-mode *test* :uart)
+(bpirate-mode-start (bpirate-mode *test*) (bpirate-stream *test*))
+(bpirate-mode-stop (bpirate-mode *test*) (bpirate-stream *test*))
+(bpirate-deinit-mode *test*)
 
 ;; XXX: Stop
 (bpirate-bbmode *test* :mode-on nil)
