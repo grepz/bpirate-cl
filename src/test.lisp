@@ -25,3 +25,8 @@
 ;; XXX: Stop
 (bpirate-bbmode *test* :mode-on nil)
 (bpirate-stop *test*)
+
+
+;;;
+(bpirate-bbmode *test* :mode-on t)
+(bpirate-status *test*)

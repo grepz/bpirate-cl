@@ -1,0 +1,7 @@
+* Bus Pirate v4 binary functionality [2/6]
+  - [ ] UART
+  - [X] Test
+  - [X] PWM
+  - [ ] Voltage measure
+  - [ ] Oscilloscope
+  - [ ] Logic sniffer

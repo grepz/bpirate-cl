@@ -15,6 +15,9 @@
 				     (:file "serial")
 				     (:file "utils")
 				     (:file "bpirate-mode")
+				     (:file "bpirate-test")
+				     (:file "bpirate-pwm")
+				     (:file "bpirate-uart")
 				     (:file "bpirate"))))
   ;; :long-description ""
   )
