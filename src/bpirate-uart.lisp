@@ -2,6 +2,18 @@
 
 (in-package #:bpirate-cl)
 
+(defparameter +BP-UART-SPEED+
+  (list sb-posix:B300    #b0000
+	sb-posix:B1200   #b0001
+	sb-posix:B2400   #b0010
+	sb-posix:B4800   #b0011
+	sb-posix:B9600   #b0100
+	sb-posix:B19200  #b0101
+	;; 0110=31250
+	sb-posix:B38400  #b0111
+	sb-posix:B57600  #b1000
+	sb-posix:B115200 #b1010))
+
 (defparameter +BP-UART-PARITY-8/N+ 0)
 (defparameter +BP-UART-PARITY-8/E+ 1)
 (defparameter +BP-UART-PARITY-8/O+ 2)
@@ -10,8 +22,8 @@
 (defparameter +BP-UART-STOPBIT/1+ 0)
 (defparameter +BP-UART-STOPBIT/2+ 1)
 
-(defparameter +BP-UART-PINOUT/HiZ  0)
-(defparameter +BP-UART-PINOUT/3.3V 1)
+(defparameter +BP-UART-PINOUT/HiZ+  0)
+(defparameter +BP-UART-PINOUT/3.3V+ 1)
 
 (defparameter +BP-UART-POLARITY/1+ 0)
 (defparameter +BP-UART-POLARITY/0+ 1)
@@ -109,7 +121,7 @@ configuration command code.")
 				 (arg-stopbit +BP-UART-STOPBIT/1+)
 				 (arg-polarity +BP-UART-POLARITY/1+)
 				 (arg-parity +BP-UART-PARITY-8/N+)
-				 (arg-pinout +BP-UART-PINOUT/HiZ) arg-bridge
+				 (arg-pinout +BP-UART-PINOUT/HiZ+) arg-bridge
 				 &allow-other-keys)
   (with-slots (bridge baud stopbit polarity parity pinout) obj
       (setf bridge arg-bridge
@@ -118,10 +130,10 @@ configuration command code.")
 	    polarity arg-polarity
 	    parity arg-parity
 	    pinout arg-pinout)
-    (with-bp-cmd (out stream (make-array 1 :initial-element +BB-UART-CMD+
-				    :element-type '(unsigned-byte 8))
-		      :timeout 1)
-      (flexi-streams:octets-to-string out))))
+      (with-bp-cmd (out stream (make-array 1 :initial-element +BB-UART-CMD+
+					   :element-type '(unsigned-byte 8))
+			:timeout 1)
+	(flexi-streams:octets-to-string out))))
 
 (defmethod bpirate-mode-stop ((obj bpirate-uart-mode) stream
 			      &key &allow-other-keys)
@@ -147,6 +159,32 @@ configuration command code.")
 
 (defmethod bpirate-uart-echo ((obj bpirate-uart-mode) stream on)
   (let ((cmd (logior +BP-UART-ECHO-CMD-MASK+ on)))
+    (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
+					 :initial-element cmd))
+      out)))
+
+(defmethod bpirate-uart-speed ((obj bpirate-uart-mode) stream speed)
+  (let ((cmd (logior +BP-UART-BAUDSET-CMD-MASK+
+		     (getf +BP-UART-SPEED+ speed))))
+    (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
+					 :initial-element cmd))
+      out)))
+
+(defmethod bpirate-uart-config ((obj bpirate-uart-mode) stream
+				&key polarity stopbit parity pinout)
+  (let ((cmd (logior +BP-UART-CONF-CMD-MASK+
+		     (if polarity polarity    (slot-value obj 'polarity))
+		     (ash (if stopbit stopbit (slot-value obj 'stopbit)) 1)
+		     (ash (if parity parity   (slot-value obj 'parity)) 2)
+		     (ash (if pinout pinout   (slot-value obj 'pinout)) 4))))
+    (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
+					 :initial-element cmd))
+	out)))
+
+(defmethod bpirate-uart-periph ((obj bpirate-uart-mode) stream
+				&key (power 0) (pullups 0) (aux 0) (cs 0))
+  (let ((cmd (logior +BP-UART-PERIPHCFG-CMD-MASK+
+		     cs (ash aux 1) (ash pullups 2) (ash power 3))))
     (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
 					 :initial-element cmd))
       out)))

@@ -30,10 +30,17 @@
 			 (make-array 5
 			     :element-type '(unsigned-byte 8)
 			     :initial-contents
-			     (mapcar 'char-int '(#\t #\e #\s #\t #\linefeed))))
+			     (mapcar 'char-int '(#\t #\e #\s #\t
+						 #\linefeed))))
 
 ;;(serial-read (bpirate-stream *test*))
 ;;(bpirate-uart-echo (bpirate-mode *test*) (bpirate-stream *test*) 1)
+(bpirate-uart-speed (bpirate-mode *test*) (bpirate-stream *test*)
+		    sb-posix:B115200)
+(bpirate-uart-config (bpirate-mode *test*) (bpirate-stream *test*)
+		     :pinout +BP-UART-PINOUT/3.3V+)
+(bpirate-uart-periph (bpirate-mode *test*) (bpirate-stream *test*)
+		     :power 1)
 
 #+nil(loop for x from 0 to 1000
 	for data = (serial-read (bpirate-stream *test*)) do
