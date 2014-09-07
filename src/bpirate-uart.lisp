@@ -12,7 +12,7 @@
 	;; 0110=31250
 	sb-posix:B38400  #b0111
 	sb-posix:B57600  #b1000
-	sb-posix:B115200 #b1010))
+	sb-posix:B115200 #b1001))
 
 (defparameter +BP-UART-PARITY-8/N+ 0)
 (defparameter +BP-UART-PARITY-8/E+ 1)
@@ -133,6 +133,7 @@ configuration command code.")
       (with-bp-cmd (out stream (make-array 1 :initial-element +BB-UART-CMD+
 					   :element-type '(unsigned-byte 8))
 			:timeout 1)
+	(format t "Starting UART mode, output '~a'" out)
 	(flexi-streams:octets-to-string out))))
 
 (defmethod bpirate-mode-stop ((obj bpirate-uart-mode) stream
@@ -159,6 +160,7 @@ configuration command code.")
 
 (defmethod bpirate-uart-echo ((obj bpirate-uart-mode) stream on)
   (let ((cmd (logior +BP-UART-ECHO-CMD-MASK+ on)))
+    (format t "Setting UART echo ~[start~;stop~]~%" on)
     (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
 					 :initial-element cmd))
       out)))
@@ -166,6 +168,7 @@ configuration command code.")
 (defmethod bpirate-uart-speed ((obj bpirate-uart-mode) stream speed)
   (let ((cmd (logior +BP-UART-BAUDSET-CMD-MASK+
 		     (getf +BP-UART-SPEED+ speed))))
+    (format t "Setting UART speed: #~b~%" cmd)
     (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
 					 :initial-element cmd))
       out)))
@@ -177,6 +180,7 @@ configuration command code.")
 		     (ash (if stopbit stopbit (slot-value obj 'stopbit)) 1)
 		     (ash (if parity parity   (slot-value obj 'parity)) 2)
 		     (ash (if pinout pinout   (slot-value obj 'pinout)) 4))))
+    (format t "Setting UART config: #~b~%" cmd)
     (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
 					 :initial-element cmd))
 	out)))
@@ -185,6 +189,7 @@ configuration command code.")
 				&key (power 0) (pullups 0) (aux 0) (cs 0))
   (let ((cmd (logior +BP-UART-PERIPHCFG-CMD-MASK+
 		     cs (ash aux 1) (ash pullups 2) (ash power 3))))
+    (format t "Setting UART periph: #~b~%" cmd)
     (with-bp-cmd (out stream (make-array 1 :element-type '(unsigned-byte 8)
 					 :initial-element cmd))
       out)))

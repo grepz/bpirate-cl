@@ -21,7 +21,7 @@
 
 (defmethod initialize-instance :after ((obj bpirate)
 				  &key path (baud-key sb-posix:B115200) bbmode)
-  (with-slots (stream status baud device) obj
+  (with-slots (baud device) obj
     (setf baud baud-key
 	  device path)
     (bpirate-start obj)
